@@ -1,0 +1,19 @@
+import requests
+from bs4 import BeautifulSoup
+import lxml
+
+result = []
+url = 'https://parsinger.ru/table/2/index.html'
+response = requests.get(url=url)
+response.encoding = 'utf-8'
+soup = BeautifulSoup(response.text, 'lxml')
+base = soup.select('td:first-child')
+
+for i in base:
+    x = i.text
+    x = float(x.replace("<td>", " "))
+    result.append(x)
+
+m_result = sum(result)
+
+print(m_result)
