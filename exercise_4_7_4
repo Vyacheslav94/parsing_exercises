@@ -1,0 +1,17 @@
+import requests
+from bs4 import BeautifulSoup
+
+def get_html(url):
+    r = requests.get(url)
+    r.encoding = 'utf-8'
+    return BeautifulSoup(r.text, 'lxml')
+
+def main():
+    url = 'https://parsinger.ru/table/4/index.html'
+    soup = get_html(url)
+    numbers = [float(i.text) for i in soup.select('.green')]
+    print(sum(numbers))
+
+
+if __name__ == '__main__':
+    main()
