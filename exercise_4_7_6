@@ -1,0 +1,23 @@
+from bs4 import BeautifulSoup as BS
+import requests
+
+def get_html(url):
+    r = requests.get(url)
+    r.encoding = 'utf-8'
+    return BS(r.text, 'lxml')
+
+def main():
+    res = {}
+    values = []
+    url = 'https://parsinger.ru/table/5/index.html'
+    soup = get_html(url)
+    keys = [x.text for x in soup.find_all('th')]
+    all_numbers = [float(x.text) for x in soup.find_all('td')]
+    for i in range(1, 16):
+        values.append(round(sum((all_numbers[i-1::15])), 3))
+    for i in range(1, 16):
+        res[keys[i-1]] = values[i-1]
+    print(res)
+
+if __name__ == '__main__':
+    main()
