@@ -1,0 +1,46 @@
+import csv
+import requests
+from bs4 import BeautifulSoup
+
+with open('all.csv', 'w', encoding='utf-8-sig', newline='') as file:
+    writer = csv.writer(file, delimiter=';')
+    writer.writerow(['Наименование', 'Артикул', 'Бренд', 'Модель', 'Наличие', 'Цена', 'Старая цена',
+                     'Ссылка на карточку'])
+# 1 ----------------  пагинация
+all_items_list = []
+for category in range(1, 6):    # пробегаем циклом по всем категориям
+    for page in range(1, 5):    # по всем страницам в каждой категории
+        URL = f'https://parsinger.ru/html/index{category}_page_{page}.html' # с помощью f-строки подставляем ссылку
+
+        response = requests.get(url=URL)
+        response.encoding = 'utf-8'
+        soup = BeautifulSoup(response.text, 'lxml')
+        items = soup.find_all('div', class_='sale_button')# на каждом находим кнопочку "Подробнее"
+        for item in items:                                # собрал кусочки ссылок на товары со
+                                                          # всех разделов и страниц
+            all_items_list.append(item.find('a').get('href'))
+# 1 ----------------  пагинация
+
+# 2 ----------------  парсинг
+for links in all_items_list:                         # из списка кусочков ссылок на все товары
+    URL2 = f'https://parsinger.ru/html/{links}'      # склеиваю ссылки в цикле
+    response2 = requests.get(url = URL2)             # подставляю прямые ссылки на каждый товар
+    response2.encoding = 'utf-8'                     # избавляемся от кракозябр в тексе
+    soup2 = BeautifulSoup(response2.text, 'lxml')
+
+    name = soup2.find('p', id='p_header').text                       # вытаскиваю Наименование
+    article = soup2.find('p', class_='article').text.split(': ')[1]  # вытаскиваю Артикул
+    brand = soup2.find('li', id='brand').text.split(': ')[1]         # вытаскиваю Бренд
+    model = soup2.find('li', id='model').text.split(':')[1]          # вытаскиваю Модель
+    in_stock = soup2.find('span', id='in_stock').text.split(': ')[1] # вытаскиваю Наличие на складе
+    price = soup2.find('span', id='price').text                      # вытаскиваю цену
+    old_price = soup2.find('span', id='old_price').text              # вытаскиваю старую цену
+    link = URL2                                                     # вытаскиваю ссылку
+# 2 ----------------  парсинг
+
+#3 -------------- добавление инфы в файл
+    with open('all.csv', 'a', encoding='utf-8-sig', newline='') as file:
+        writer = csv.writer(file, delimiter=';')
+        writer.writerow([name, article, brand, model, in_stock, price, old_price,link])
+# 3 -------------- добавление инфы в файл
+print("Done")
