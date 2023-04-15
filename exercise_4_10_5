@@ -1,0 +1,33 @@
+import requests
+from bs4 import BeautifulSoup
+import json
+
+result = []
+
+for i in range(1, 6):
+    for j in range(1, 5):
+        url = f'https://parsinger.ru/html/index{i}_page_{j}.html'
+
+        response = requests.get(url)
+        response.encoding = 'utf-8'
+        soup = BeautifulSoup(response.text, 'lxml')
+
+        name = [i.text for i in soup.find_all('a', class_='name_item')]
+        description = [i.text.strip().split("\n") for i in soup.find_all('div', class_='description')]
+        price = [i.text for i in soup.find_all('p', class_='price')]
+
+        for description, price, name in zip(description, price, name):
+            result.append({
+                'Наименование': name,
+                [i.split(':')[0] for i in description][0]: [i.split(':')[1] for i in description][0],
+                [i.split(':')[0] for i in description][1]: [i.split(':')[1] for i in description][1],
+                [i.split(':')[0] for i in description][2]: [i.split(':')[1] for i in description][2],
+                [i.split(':')[0] for i in description][3]: [i.split(':')[1] for i in description][3],
+                'Цена': price
+            })
+
+with open('res.json', 'w', encoding='utf-8') as file:
+    json.dump(result, file, indent=4, ensure_ascii=False)
+
+print('Файл res.json создан')
+print(f"Общее количество позиций: {len(result_json)}")
